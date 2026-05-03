@@ -1,0 +1,6 @@
+name: project_asyncapi_studio
+services:
+    studio:
+        ports:
+            - 8000:80
+        image: asyncapi/studio

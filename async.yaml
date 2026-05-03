@@ -1,0 +1,61 @@
+asyncapi: 3.1.0
+info:
+  title: Асинхронная обработка заблюривания лиц
+  version: 1.0.0
+  description: |
+    Асинхронный конвейер для размытия лиц на видеопотоке.
+    Этапы: захват --> grayscale --> детекция лиц --> мозайка.
+servers:
+  redis:
+    host: 'localhost:6379'
+    protocol: redis
+    description: Redis брокер очередей
+channels:
+  raw_frames:
+    address: raw_frames
+    description: Очередь сырых кадров с камеры/видео
+  gray_frames:
+    address: gray_frames
+    description: Очередь grayscale кадров
+  faces_bboxes:
+    address: faces_bboxes
+    description: Очередь с координатами лиц
+  output_frames:
+    address: output_frames
+    description: Очередь обработанных кадров
+operations:
+  captureFrame:
+    action: receive
+    channel:
+      $ref: '#/channels/raw_frames'
+    summary: Producer - захват видео
+  convertToGray:
+    action: send
+    channel:
+      $ref: '#/channels/raw_frames'
+    summary: Consumer 1 - конвертация в grayscale
+  publishGrayFrame:
+    action: receive
+    channel:
+      $ref: '#/channels/gray_frames'
+    summary: Consumer 1 публикует результат конвертации
+  detectFaces:
+    action: send
+    channel:
+      $ref: '#/channels/gray_frames'
+    summary: Consumer 2 - детекция лиц
+  publishFaces:
+    action: receive
+    channel:
+      $ref: '#/channels/faces_bboxes'
+    summary: Consumer 2 публикует результаты детекции
+  applyMosaic:
+    action: send
+    channel:
+      $ref: '#/channels/faces_bboxes'
+    summary: Consumer 3 - наложение мозайки
+  displayFrame:
+    action: send
+    channel:
+      $ref: '#/channels/output_frames'
+    summary: Consumer 4 - вывод/сохранение
