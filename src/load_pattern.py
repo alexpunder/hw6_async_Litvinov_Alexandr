@@ -1,5 +1,6 @@
 import time
 
+import gc
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
@@ -35,7 +36,7 @@ class ReloaderPredictor:
         self._clear_components()
         return result
 
-def lazy():                                                                         # --- 1. Lazy Loading Pattern ---
+def lazy():
     _tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     _model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME)
     _pipeline = pipeline("sentiment-analysis", model=_model, tokenizer=_tokenizer)
